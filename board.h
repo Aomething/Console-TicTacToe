@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -7,10 +8,9 @@ class Board {
     public:
         // interact with individual slots of the board
         void setSlot(int slot);
-        char getSlot(int slot);
 
         // after each move, determine which player won, or if there was a tie
-        void winCheck();
+        int winCheck();
 
         // reset slots 
         void resetBoard();
@@ -21,25 +21,21 @@ class Board {
         // start game - reset game info, then start the game over
         void startGame(bool useBot);
 
-        // check if game is over, used for exiting
-        bool gameEndCheck();
-
         // return winner, used for printing results
         int getWinner();
 
         // return if all slots are full, used for checking ties
         bool isFull();
 
-        // return best move for the bot to make
-        int findBest(int path, int depth);
+        // find best move for bot to make, return the index of the move
+        int bestMove();
 
-        // debug function, prints bot's vector of available moves
-        void _printAvailable();
+        // returns scores to help determine which moves are optimal
+        int miniMax(int depth, bool isMaximiser);
 
     private:
         char board[9] = {' ',' ',' ',' ',' ',' ',' ',' ',' '};
         int playerTurn = 0;
         bool gameEnd = false;
         int winner = 0;
-        vector<int> AvailableMoves;
 };
