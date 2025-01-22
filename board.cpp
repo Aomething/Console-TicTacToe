@@ -28,6 +28,14 @@ void Board::setSlot(int slot) {
         playerTurn = 1;
     }
 
+    if (slot == 9) {
+        //cout << "SLOT 9 CHOSEN" << endl;
+        //cout << board[8] << endl;
+        //printBoard();
+        //_printAvailable();
+    }
+    
+
     return;
 }
 
@@ -40,7 +48,7 @@ char Board::getSlot(int slot) {
         return 'F';
     }
 
-    return board[slot];
+    return board[slot-1];
 }
 
 // after each move, determine which player won, or if there was a tie
@@ -145,10 +153,13 @@ void Board::winCheck() {
         } 
     }
     else {
+        // tie condition (board is full, but no win conditions triggered)
         if (isFull()) {
             gameEnd = true;
             winner = 3;
         }
+
+        // game isnt over yet
         else {
             winner = 0;
         }
@@ -157,11 +168,14 @@ void Board::winCheck() {
 }
 
 bool Board::isFull() {
+    //check every slot, and if any are empty, the board is not full
     for (int i = 0; i < 9; i++) {
         if (board[i] != player && board[i] != bot) {
             return false;
         }
+        cout << "Slot " << i+1 << " full" << endl;
     }
+    cout << "board is full" << endl;
     return true;
 }
 
@@ -191,24 +205,85 @@ void Board::printBoard() {
 }
 
 // start game - set up everything
-void Board::startGame() {
+void Board::startGame(bool useBot) {
     resetBoard();
     gameEnd = false;
     winner = 0;
     playerTurn = 1;
     int inputSlot;
-    while (!gameEndCheck()) {
-        printBoard();
-        if (playerTurn == 1) {
-            cout << "\nChoose a slot (X)" << endl;
+
+    // fill list of available moves with all slots before game starts
+    for (int i = 0; i < 9; i++) {
+        if (board[i] != player && board[i] != bot) {
+            AvailableMoves.push_back(i+1);
         }
-        else {
-            cout << "\nChoose a slot (O)" << endl;
-        }
-        cin >> inputSlot;
-        setSlot(inputSlot);
-        winCheck();
     }
+
+    if (useBot) {
+        // keep asking for inputs, swapping between player and bot each time
+        while (!gameEndCheck()) {
+            printBoard();
+            if (playerTurn == 1) {
+                _printAvailable();
+                cout << "\nChoose a slot (X)" << endl;
+                cin >> inputSlot;
+                setSlot(inputSlot);
+                // if the slot was successfully changed by player
+                if (getSlot(inputSlot) == player) {
+                    // find that slot in the vector of AvailableMoves and remove it
+                    if (inputSlot != *(AvailableMoves.end()-1) && AvailableMoves.size() > 1) {
+                        for (vector<int>::iterator it = AvailableMoves.begin(); it != AvailableMoves.end(); it++) {
+                            if (*it == inputSlot) {
+                                AvailableMoves.erase(it);
+                            }
+                        }
+                    }
+                    else {
+                        AvailableMoves.pop_back();
+                    }
+                    
+                }
+            }
+            else {
+                _printAvailable();
+                cin >> inputSlot;
+                setSlot(inputSlot);
+                // if the slot was successfully changed by bot
+                if (getSlot(inputSlot) == bot) {
+                    // find that slot in the vector of AvailableMoves and remove it
+                    if (inputSlot != *(AvailableMoves.end()-1) && AvailableMoves.size() > 1) {
+                        for (vector<int>::iterator it = AvailableMoves.begin(); it != AvailableMoves.end(); it++) {
+                            if (*it == inputSlot) {
+                                AvailableMoves.erase(it);
+                            }
+                        }
+                    }
+                    else {
+                        AvailableMoves.pop_back();
+                    }
+                }
+                _printAvailable();
+            }
+            winCheck();
+        }
+    }
+    else {
+        // keep asking for inputs, swapping between players each time
+        while (!gameEndCheck()) {
+            printBoard();
+            if (playerTurn == 1) {
+                cout << "\nChoose a slot (X)" << endl;
+            }
+            else {
+                cout << "\nChoose a slot (O)" << endl;
+            }
+            cin >> inputSlot;
+            setSlot(inputSlot);
+            winCheck();
+        }
+    }
+
+    //game over, print results
     printBoard();
     cout << "Game Over!";
     switch(winner) {
@@ -224,6 +299,7 @@ void Board::startGame() {
     }
 
     cout << "\nGAME EXITING...\n";
+    return;
 }
 
 bool Board::gameEndCheck() {
@@ -234,10 +310,30 @@ int Board::getWinner() {
     
     /*
         0 : no winner   (game in progress)
-        1 : player 1    (player)
-        2 : player 2    (bot)
+        1 : player 1    (game over, player1 wins)
+        2 : player 2    (game over, player2/bot wins)
         3 : tie         (game over, no winner)
     */
 
     return winner;
+}
+
+void Board::_printAvailable() {
+    cout << "Available Moves: ";
+    for (vector<int>::iterator it = AvailableMoves.begin(); it != AvailableMoves.end(); it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+
+int Board::findBest(int path, int pathDepth) {
+    // using AvailableMoves, check each path to a depth of pathDepth - 1 
+    int bestPath = -1;
+    if (pathDepth == 1) {
+
+    }
+    else {
+        findBest(1, pathDepth-1);
+    }
+    return 0;
 }
